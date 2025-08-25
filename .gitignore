@@ -29,3 +29,10 @@ mlruns
 
 # Challengify - test challengification files
 *_challengify*
+
+louise_notebooks/data
+louise_notebooks/shapes_tinycnn_keras
+louise_web_model
+louise_notebooks/shapes_tinycnn_keras.h5
+louise_notebooks/shapes_tinycnn_keras_classes.json
+louise_notebooks/.quickdrawcache/
