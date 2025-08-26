@@ -1,0 +1,22 @@
+{
+  "name": "doodle-autocomplete",
+  "version": "1.0.0",
+  "description": "## Pitch - [doodle autocomplete pitch](https://docs.google.com/presentation/d/1jQgCpVi1fGd4FS_Zb1PN2UzbuA0cJTbJvIoU6GaL6XI/edit?slide=id.g37b3d2f2350_0_18#slide=id.g37b3d2f2350_0_18)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Edmond-Dantes/doodle-autocomplete.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Edmond-Dantes/doodle-autocomplete/issues"
+  },
+  "homepage": "https://github.com/Edmond-Dantes/doodle-autocomplete#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

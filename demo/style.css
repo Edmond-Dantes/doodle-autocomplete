@@ -1,0 +1,24 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: #CDCDCD;
+}
+main {
+	width: 280px;
+	margin: 80px auto 0;
+}
+
+.ui-panel {
+  width: 280px;
+  margin: 10px auto;
+  padding: 8px;
+  background: #CDCDCD;
+  color: white;
+  font-family: sans-serif;
+  border-radius: 8px;
+}
+.ui-panel button {
+  margin-right: 6px;
+  padding: 4px 10px;
+}
