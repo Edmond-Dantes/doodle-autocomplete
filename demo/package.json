@@ -1,12 +1,10 @@
 {
-  "name": "doodle-autocomplete",
+  "name": "p5demo",
   "version": "1.0.0",
   "description": "## Pitch - [doodle autocomplete pitch](https://docs.google.com/presentation/d/1jQgCpVi1fGd4FS_Zb1PN2UzbuA0cJTbJvIoU6GaL6XI/edit?slide=id.g37b3d2f2350_0_18#slide=id.g37b3d2f2350_0_18)",
   "main": "index.js",
-  "workspaces": ["./demo", "./tldr-demo"],
   "scripts": {
-    "demo": "npm run -w=p5demo start",
-    "tldr": "npm run -w=tldr-demo dev",
+    "start": "node server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Edmond-Dantes/doodle-autocomplete/issues"
   },
-  "homepage": "https://github.com/Edmond-Dantes/doodle-autocomplete#readme"
+  "homepage": "https://github.com/Edmond-Dantes/doodle-autocomplete#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }
