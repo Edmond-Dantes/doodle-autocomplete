@@ -139,46 +139,39 @@ export default function App() {
 
     };
 
-    // Use activity-based approach - detect when drawing stops
-    let lastActivity = Date.now();
-    let checkTimeout: NodeJS.Timeout | null = null;
-
-    const handleDrawingComplete = () => {
-      const now = Date.now();
-      if (now - lastActivity > 100 && isDrawing && lastDrawnShapeId) {
-        const currentTool = editor.getCurrentToolId();
-        if (currentTool === "draw") {
-          const shape = editor.getShape(lastDrawnShapeId);
-          if (shape && shape.type === "draw") {
-            convertDrawShapeToGeo(lastDrawnShapeId);
-            lastDrawnShapeId = null;
-            isDrawing = false;
-          }
-        }
-      }
-    };
-
-    const enhancedChangeListener: TLEventMapHandler<"change"> = (change) => {
-      handleChangeEvent(change);
+    // Listen for mouse up events directly
+    const handleMouseUp = () => {
+      const currentTool = editor.getCurrentToolId();
       
-      // Update activity timestamp when drawing
-      if (isDrawing) {
-        lastActivity = Date.now();
-        
-        // Clear existing timeout and set new one
-        if (checkTimeout) clearTimeout(checkTimeout);
-        checkTimeout = setTimeout(handleDrawingComplete, 150);
+      // Only convert if we were drawing with the draw tool and have a shape to convert
+      if (currentTool === "draw" && isDrawing && lastDrawnShapeId) {
+        setTimeout(() => {
+          if (lastDrawnShapeId) {
+            const shape = editor.getShape(lastDrawnShapeId);
+            if (shape && shape.type === "draw") {
+              convertDrawShapeToGeo(lastDrawnShapeId);
+            }
+          }
+          // Reset tracking
+          lastDrawnShapeId = null;
+          isDrawing = false;
+        }, 50);
       }
     };
 
-    const cleanupEnhancedListener = editor.store.listen(enhancedChangeListener, {
+    // Add mouse up listener to the document
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('pointerup', handleMouseUp);
+
+    const cleanupChangeListener = editor.store.listen(handleChangeEvent, {
       source: "user",
       scope: "all",
     });
 
     return () => {
-      cleanupEnhancedListener();
-      if (checkTimeout) clearTimeout(checkTimeout);
+      cleanupChangeListener();
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('pointerup', handleMouseUp);
     };
   }, [editor, convertDrawShapeToGeo]);
 
