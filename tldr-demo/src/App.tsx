@@ -21,90 +21,97 @@ export default function App() {
   }, []);
 
   // Extract conversion logic into reusable function
-  const convertDrawShapeToGeo = useCallback(async (shapeId: TLShapeId) => {
-    if (!editor) return;
-    
-    const shape = editor.getShape(shapeId);
-    if (!shape || shape.type !== "draw") return;
+  const convertDrawShapeToGeo = useCallback(
+    async (shapeId: TLShapeId) => {
+      if (!editor) return;
 
-    const drawShape = shape as TLDrawShape;
-    const points = drawShape.props.segments.flatMap(
-      (segment) => segment.points
-    );
+      const shape = editor.getShape(shapeId);
+      if (!shape || shape.type !== "draw") return;
 
-    // Calculate bounding box of the points
-    const xs = points.map((p) => p.x);
-    const ys = points.map((p) => p.y);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
+      const drawShape = shape as TLDrawShape;
+      const points = drawShape.props.segments.flatMap(
+        (segment) => segment.points
+      );
 
-    const width = maxX - minX;
-    const height = maxY - minY;
+      // Calculate bounding box of the points
+      const xs = points.map((p) => p.x);
+      const ys = points.map((p) => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
 
-    // Calculate scale to fit in 28x28 while maintaining aspect ratio
-    const scale = Math.min(24 / width, 24 / height); // Use 24 to leave some padding
-    const offsetX = (28 - width * scale) / 2;
-    const offsetY = (28 - height * scale) / 2;
+      const width = maxX - minX;
+      const height = maxY - minY;
 
-    // Create a canvas to resize the image to 28x28
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
+      // Calculate scale to fit in 28x28 while maintaining aspect ratio
+      const scale = Math.min(24 / width, 24 / height); // Use 24 to leave some padding
+      const offsetX = (28 - width * scale) / 2;
+      const offsetY = (28 - height * scale) / 2;
 
-    // Clear the canvas with black background
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, 28, 28);
+      // Create a canvas to resize the image to 28x28
+      const canvas = canvasRef.current!;
+      const ctx = canvas.getContext("2d")!;
 
-    // Scale and translate the canvas context
-    ctx.save();
-    ctx.translate(offsetX - minX * scale, offsetY - minY * scale);
-    ctx.scale(scale, scale);
+      // Clear the canvas with black background
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, 28, 28);
 
-    // Draw the path
-    const path = getSvgPathFromPoints(points);
-    const p = new Path2D(path);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = Math.ceil(2 / scale); // Adjust line width for scaling
-    ctx.stroke(p);
-    ctx.restore();
+      // Scale and translate the canvas context
+      ctx.save();
+      ctx.translate(offsetX - minX * scale, offsetY - minY * scale);
+      ctx.scale(scale, scale);
 
-    const label = await ModelHelper.predict(canvas);
+      // Draw the path
+      const path = getSvgPathFromPoints(points, false);
+      const p = new Path2D(path);
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = Math.ceil(2 / scale); // Adjust line width for scaling
+      ctx.stroke(p);
+      ctx.restore();
 
-    const shapeTypeMap: Record<string, string> = {
-      circle: "ellipse", // tldraw uses 'ellipse' for circles
-      square: "rectangle", // tldraw uses 'rectangle' for squares
-      triangle: "triangle", // direct match
-      star: "star", // direct match
-      vertical_line: "arrow-up", // direct match
-      other: "rectangle", // fallback to rectangle
-    };
+      const label = await ModelHelper.predict(canvas);
 
-    if (label !== "unknown" && label in shapeTypeMap) {
-      const newShapeType = shapeTypeMap[label];
+      const shapeTypeMap: Record<string, string> = {
+        circle: "ellipse", // tldraw uses 'ellipse' for circles
+        square: "rectangle", // tldraw uses 'rectangle' for squares
+        triangle: "triangle", // direct match
+        star: "star", // direct match
+        vertical_line: "arrow-up", // direct match
+        other: "rectangle", // fallback to rectangle
+      };
 
-              // Get the bounds of the original shape to maintain position and size
+      if (label !== "unknown" && label in shapeTypeMap) {
+        const newShapeType = shapeTypeMap[label];
+
+        // Get the bounds of the original shape to maintain position and size
         const bounds = editor.getShapePageBounds(shape);
 
         if (bounds) {
-          // Delete the original shape
-          editor.deleteShapes([shape]);
+          editor.run(() => {
+            editor.markHistoryStoppingPoint()
+            
+            // Delete the original shape
+            editor.deleteShapes([shape]);
 
-        // Create a new shape with the predicted type
-        editor.createShape({
-          type: "geo",
-          x: bounds.x,
-          y: bounds.y,
-          props: {
-            geo: newShapeType,
-            w: bounds.w,
-            h: bounds.h,
-            color: (shape.props as TLDrawShapeProps).color,
-          },
-        });
+            // Create a new shape with the predicted type
+            editor.createShape({
+              type: "geo",
+              x: bounds.x,
+              y: bounds.y,
+              props: {
+                geo: newShapeType,
+                w: bounds.w,
+                h: bounds.h,
+                color: (shape.props as TLDrawShapeProps).color,
+              },
+            });
+          });
+        }
       }
-    }
-  }, [editor]);
+    },
+    [editor]
+  );
 
   useEffect(() => {
     if (!editor) return;
@@ -117,7 +124,7 @@ export default function App() {
     const handleChangeEvent: TLEventMapHandler<"change"> = (change) => {
       // Track the last drawn shape when draw tool is active
       const currentTool = editor.getCurrentToolId();
-      
+
       if (currentTool === "draw") {
         // Track newly added draw shapes
         for (const record of Object.values(change.changes.added)) {
@@ -135,14 +142,12 @@ export default function App() {
           }
         }
       }
-
-
     };
 
     // Listen for mouse up events directly
     const handleMouseUp = () => {
       const currentTool = editor.getCurrentToolId();
-      
+
       // Only convert if we were drawing with the draw tool and have a shape to convert
       if (currentTool === "draw" && isDrawing && lastDrawnShapeId) {
         setTimeout(() => {
@@ -155,13 +160,13 @@ export default function App() {
           // Reset tracking
           lastDrawnShapeId = null;
           isDrawing = false;
-        }, 50);
+        }, 100);
       }
     };
 
     // Add mouse up listener to the document
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('pointerup', handleMouseUp);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("pointerup", handleMouseUp);
 
     const cleanupChangeListener = editor.store.listen(handleChangeEvent, {
       source: "user",
@@ -170,8 +175,8 @@ export default function App() {
 
     return () => {
       cleanupChangeListener();
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('pointerup', handleMouseUp);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("pointerup", handleMouseUp);
     };
   }, [editor, convertDrawShapeToGeo]);
 
@@ -182,7 +187,7 @@ export default function App() {
         inset: 0,
       }}
     >
-      <Tldraw onMount={setAppToState} />
+      <Tldraw onMount={setAppToState} options={{ maxPages: 1 }} />
       <div style={{ position: "absolute", left: 350, top: 0 }}>
         <canvas ref={canvasRef} height={28} width={28} />
       </div>
