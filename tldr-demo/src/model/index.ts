@@ -26,14 +26,16 @@ export async function predict(
   canvas: HTMLCanvasElement
 ): Promise<(typeof CLASSES)[number] | "unknown"> {
   let input: tf.Tensor | undefined;
-  let out: tf.Tensor | undefined;
+  let out: [tf.Tensor, tf.Tensor] | undefined;
   
   try {
     input = tf.tidy(() =>
       tf.browser.fromPixels(canvas, 1).toFloat().div(255).expandDims(0)
     ) as tf.Tensor<tf.Rank.R2>;
-    out = model.predict(input) as tf.Tensor<tf.Rank.R2>;
-    const arr = await out.array() as number[][];
+    out = model.predict(input) as [tf.Tensor<tf.Rank.R2>, tf.Tensor<tf.Rank.R2>];
+    console.log(out);
+    const arr = await out[0].array() as number[][];
+    console.log(arr);
     const probs = arr[0];
     const idx = probs.indexOf(Math.max(...probs));
     const conf = probs[idx];

@@ -77,7 +77,7 @@ export default function App() {
         square: "rectangle", // tldraw uses 'rectangle' for squares
         triangle: "triangle", // direct match
         star: "star", // direct match
-        vertical_line: "arrow-up", // direct match
+        arrow: "arrow-up", // direct match
         other: "rectangle", // fallback to rectangle
       };
 
