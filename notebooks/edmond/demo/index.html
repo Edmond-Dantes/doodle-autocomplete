@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Doodle Classification</title>
+  </head>
+  <body>
+    <h1>Doodle Classification Demo</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <div id="result"></div>
+
+    <script type="module">
+      import {
+        env,
+        pipeline,
+      } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2/dist/transformers.min.js";
+
+      // Configure for local models
+      env.allowRemoteModels = false;
+      env.allowLocalModels = true;
+      env.localModelPath = "./models/";
+
+      // Load your model
+      const classifier = await pipeline(
+        "image-classification",
+        "vit-quickdraw-final"
+      );
+
+      document
+        .getElementById("imageInput")
+        .addEventListener("change", async (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const result = await classifier(file);
+            document.getElementById("result").innerHTML = `<h3>Prediction: ${
+              result[0].label
+            } (${(result[0].score * 100).toFixed(2)}%)</h3>`;
+          }
+        });
+    </script>
+  </body>
+</html>

@@ -9,12 +9,76 @@ import {
   type TLShapeId,
 } from "tldraw";
 import "tldraw/tldraw.css";
-import * as ModelHelper from "./model";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [editor, setEditor] = useState<Editor>();
+
+  // Create a reference to the worker object.
+  const worker = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    if (!worker.current) {
+      // Create the worker if it does not yet exist.
+      worker.current = new Worker(new URL("./worker.js", import.meta.url), {
+        type: "module",
+      });
+    }
+
+    // Create a callback function for messages from the worker thread.
+    const onMessageReceived = (e) => {
+      if (!editor) return;
+
+      const result = e.data;
+
+      const label = result.data;
+      const shape = result.shape;
+
+      const shapeTypeMap: Record<string, string> = {
+        circle: "ellipse", // tldraw uses 'ellipse' for circles
+        square: "rectangle", // tldraw uses 'rectangle' for squares
+        line: "arrow-up", // direct match
+        other: "rectangle", // fallback to rectangle
+      };
+
+      if (label !== "unknown" && label in shapeTypeMap) {
+        const newShapeType = shapeTypeMap[label];
+
+        // Get the bounds of the original shape to maintain position and size
+        const bounds = editor.getShapePageBounds(shape);
+
+        if (bounds) {
+          editor.run(() => {
+            editor.markHistoryStoppingPoint();
+
+            // Delete the original shape
+            editor.deleteShapes([shape]);
+
+            // Create a new shape with the predicted type
+            editor.createShape({
+              type: "geo",
+              x: bounds.x,
+              y: bounds.y,
+              props: {
+                geo: newShapeType,
+                w: bounds.w,
+                h: bounds.h,
+                color: (shape.props as TLDrawShapeProps).color,
+              },
+            });
+          });
+        }
+      }
+    };
+
+    // Attach the callback function as an event listener.
+    worker.current.addEventListener("message", onMessageReceived);
+
+    // Define a cleanup function for when the component is unmounted.
+    return () =>
+      worker.current?.removeEventListener("message", onMessageReceived);
+  });
 
   const setAppToState = useCallback((editor: Editor) => {
     setEditor(editor);
@@ -70,45 +134,11 @@ export default function App() {
       ctx.stroke(p);
       ctx.restore();
 
-      const label = await ModelHelper.predict(canvas);
-
-      const shapeTypeMap: Record<string, string> = {
-        circle: "ellipse", // tldraw uses 'ellipse' for circles
-        square: "rectangle", // tldraw uses 'rectangle' for squares
-        triangle: "triangle", // direct match
-        star: "star", // direct match
-        arrow: "arrow-up", // direct match
-        other: "rectangle", // fallback to rectangle
-      };
-
-      if (label !== "unknown" && label in shapeTypeMap) {
-        const newShapeType = shapeTypeMap[label];
-
-        // Get the bounds of the original shape to maintain position and size
-        const bounds = editor.getShapePageBounds(shape);
-
-        if (bounds) {
-          editor.run(() => {
-            editor.markHistoryStoppingPoint()
-            
-            // Delete the original shape
-            editor.deleteShapes([shape]);
-
-            // Create a new shape with the predicted type
-            editor.createShape({
-              type: "geo",
-              x: bounds.x,
-              y: bounds.y,
-              props: {
-                geo: newShapeType,
-                w: bounds.w,
-                h: bounds.h,
-                color: (shape.props as TLDrawShapeProps).color,
-              },
-            });
-          });
-        }
-      }
+      worker.current?.postMessage({
+        action: "classify",
+        image: canvas.toDataURL(),
+        shape,
+      });
     },
     [editor]
   );
@@ -189,7 +219,7 @@ export default function App() {
     >
       <Tldraw onMount={setAppToState} options={{ maxPages: 1 }} />
       <div style={{ position: "absolute", left: 350, top: 0 }}>
-        <canvas ref={canvasRef} height={28} width={28} />
+        <canvas id="classify-canvas" ref={canvasRef} height={28} width={28} />
       </div>
     </div>
   );
