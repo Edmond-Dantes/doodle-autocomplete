@@ -7,8 +7,10 @@ import {
   type TLDrawShape,
   type TLEventMapHandler,
   type TLShapeId,
+  type TLUnknownShape,
 } from "tldraw";
 import "tldraw/tldraw.css";
+import { predict } from "./model";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,75 +20,40 @@ export default function App() {
   // Create a reference to the worker object.
   const worker = useRef<Worker | null>(null);
 
-  useEffect(() => {
-    if (!worker.current) {
-      // Create the worker if it does not yet exist.
-      worker.current = new Worker(new URL("./worker.js", import.meta.url), {
-        type: "module",
-      });
-    }
+  // useEffect(() => {
+  //   if (!worker.current) {
+  //     // Create the worker if it does not yet exist.
+  //     worker.current = new Worker(new URL("./worker.js", import.meta.url), {
+  //       type: "module",
+  //     });
+  //   }
 
-    // Create a callback function for messages from the worker thread.
-    const onMessageReceived = (e) => {
-      if (!editor) return;
+  //   // Create a callback function for messages from the worker thread.
+  //   const onMessageReceived = (e: MessageEvent) => {
+  //     if (!editor) return;
 
-      const result = e.data;
+  //     const result = e.data;
 
-      const label = result.data;
-      const shape = result.shape;
+  //     const label = result.data;
+  //     const shape = result.shape;
 
-      const shapeTypeMap: Record<string, string> = {
-        circle: "ellipse", // tldraw uses 'ellipse' for circles
-        square: "rectangle", // tldraw uses 'rectangle' for squares
-        line: "arrow-up", // direct match
-        other: "rectangle", // fallback to rectangle
-      };
+  //     generatePredictedShape(label, shape);
+  //   };
 
-      if (label !== "unknown" && label in shapeTypeMap) {
-        const newShapeType = shapeTypeMap[label];
+  //   // Attach the callback function as an event listener.
+  //   worker.current.addEventListener("message", onMessageReceived);
 
-        // Get the bounds of the original shape to maintain position and size
-        const bounds = editor.getShapePageBounds(shape);
-
-        if (bounds) {
-          editor.run(() => {
-            editor.markHistoryStoppingPoint();
-
-            // Delete the original shape
-            editor.deleteShapes([shape]);
-
-            // Create a new shape with the predicted type
-            editor.createShape({
-              type: "geo",
-              x: bounds.x,
-              y: bounds.y,
-              props: {
-                geo: newShapeType,
-                w: bounds.w || 1,
-                h: bounds.h || 1,
-                color: (shape.props as TLDrawShapeProps).color,
-              },
-            });
-          });
-        }
-      }
-    };
-
-    // Attach the callback function as an event listener.
-    worker.current.addEventListener("message", onMessageReceived);
-
-    // Define a cleanup function for when the component is unmounted.
-    return () =>
-      worker.current?.removeEventListener("message", onMessageReceived);
-  });
+  //   // Define a cleanup function for when the component is unmounted.
+  //   return () =>
+  //     worker.current?.removeEventListener("message", onMessageReceived);
+  // });
 
   const setAppToState = useCallback((editor: Editor) => {
     setEditor(editor);
   }, []);
 
-  // Extract conversion logic into reusable function
-  const convertDrawShapeToGeo = useCallback(
-    async (shapeId: TLShapeId) => {
+  const generateOffScreenCanvasForPrediction = useCallback(
+    (shapeId: TLShapeId) => {
       if (!editor) return;
 
       const shape = editor.getShape(shapeId);
@@ -134,13 +101,83 @@ export default function App() {
       ctx.stroke(p);
       ctx.restore();
 
+      return { canvas, ctx, shape };
+    },
+    [editor]
+  );
+
+  const generatePredictedShape = useCallback(
+    async (label: string, shape: TLUnknownShape | TLDrawShape) => {
+      if (!editor) return;
+
+      const shapeTypeMap: Record<string, string> = {
+        circle: "ellipse", // tldraw uses 'ellipse' for circles
+        square: "rectangle", // tldraw uses 'rectangle' for squares
+        line: "arrow-up", // direct match
+        other: "rectangle", // fallback to rectangle
+      };
+
+      if (label !== "unknown" && label in shapeTypeMap) {
+        const newShapeType = shapeTypeMap[label];
+
+        // Get the bounds of the original shape to maintain position and size
+        const bounds = editor.getShapePageBounds(shape);
+
+        if (bounds) {
+          editor.run(() => {
+            editor.markHistoryStoppingPoint();
+
+            // Delete the original shape
+            editor.deleteShapes([shape]);
+
+            // Create a new shape with the predicted type
+            editor.createShape({
+              type: "geo",
+              x: bounds.x,
+              y: bounds.y,
+              props: {
+                geo: newShapeType,
+                w: bounds.w || 1,
+                h: bounds.h || 1,
+                color: (shape.props as TLDrawShapeProps).color,
+              },
+            });
+          });
+        }
+      }
+    },
+    [editor]
+  );
+
+  // Extract conversion logic into reusable function
+  const convertDrawShapeToGeo = useCallback(
+    async (shapeId: TLShapeId) => {
+      const offScreenCanvasData = generateOffScreenCanvasForPrediction(shapeId);
+      if (!offScreenCanvasData) return;
+      const { canvas, ctx, shape } = offScreenCanvasData;
+
+      const label = await predict(canvas);
+      console.log("label", label);
+
+      generatePredictedShape(label, shape);
+    },
+    [generateOffScreenCanvasForPrediction, generatePredictedShape]
+  );
+
+  // Extract conversion logic into reusable function
+  const transformersConvertDrawShapeToGeo = useCallback(
+    async (shapeId: TLShapeId) => {
+      const offScreenCanvasData = generateOffScreenCanvasForPrediction(shapeId);
+      if (!offScreenCanvasData) return;
+      const { canvas, ctx, shape } = offScreenCanvasData;
+
       worker.current?.postMessage({
         action: "classify",
         image: canvas.toDataURL(),
         shape,
       });
     },
-    [editor]
+    [generateOffScreenCanvasForPrediction, generatePredictedShape]
   );
 
   useEffect(() => {
@@ -185,6 +222,7 @@ export default function App() {
             const shape = editor.getShape(lastDrawnShapeId);
             if (shape && shape.type === "draw") {
               convertDrawShapeToGeo(lastDrawnShapeId);
+              // transformersConvertDrawShapeToGeo(lastDrawnShapeId);
             }
           }
           // Reset tracking
@@ -219,7 +257,13 @@ export default function App() {
     >
       <Tldraw onMount={setAppToState} options={{ maxPages: 1 }} />
       <div style={{ position: "absolute", left: 350, top: 0 }}>
-        <canvas id="classify-canvas" ref={canvasRef} height={28} width={28} hidden />
+        <canvas
+          id="classify-canvas"
+          ref={canvasRef}
+          height={28}
+          width={28}
+          hidden
+        />
       </div>
     </div>
   );
