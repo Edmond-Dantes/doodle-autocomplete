@@ -1,9 +1,11 @@
 import { env, pipeline, RawImage } from "@huggingface/transformers";
 
 // Configure for local models
-env.allowRemoteModels = false;
-env.allowLocalModels = true;
-env.localModelPath = "/models/";
+// env.allowRemoteModels = false;
+// env.allowLocalModels = true;
+// env.localModelPath = "/models/";
+env.remoteHost = "https://storage.googleapis.com/doodle-autocomplete-model/models/";
+env.remotePathTemplate = '{model}/';
 
 // Load your model
 const classifier = await pipeline(

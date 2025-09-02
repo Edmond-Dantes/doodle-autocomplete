@@ -62,8 +62,8 @@ export default function App() {
               y: bounds.y,
               props: {
                 geo: newShapeType,
-                w: bounds.w,
-                h: bounds.h,
+                w: bounds.w || 1,
+                h: bounds.h || 1,
                 color: (shape.props as TLDrawShapeProps).color,
               },
             });
@@ -219,7 +219,7 @@ export default function App() {
     >
       <Tldraw onMount={setAppToState} options={{ maxPages: 1 }} />
       <div style={{ position: "absolute", left: 350, top: 0 }}>
-        <canvas id="classify-canvas" ref={canvasRef} height={28} width={28} />
+        <canvas id="classify-canvas" ref={canvasRef} height={28} width={28} hidden />
       </div>
     </div>
   );
