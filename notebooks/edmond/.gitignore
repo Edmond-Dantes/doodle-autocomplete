@@ -1,0 +1,9 @@
+data
+shapes_dataset
+.quickdraw_dataset
+vit-quickdraw-final
+vit-quickdraw
+.quickdrawcache
+node_modules
+models
+demo/public/models
