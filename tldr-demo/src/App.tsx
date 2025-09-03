@@ -19,8 +19,8 @@ export default function App() {
 
   const [editor, setEditor] = useState<Editor>();
 
-  // Create a reference to the worker object.
-  const worker = useRef<Worker | null>(null);
+  // // Create a reference to the worker object.
+  // const worker = useRef<Worker | null>(null);
 
   // useEffect(() => {
   //   if (!worker.current) {
@@ -187,7 +187,7 @@ export default function App() {
     async (shapeId: TLShapeId) => {
       const offScreenCanvasData = generateOffScreenCanvasForPrediction(shapeId);
       if (!offScreenCanvasData) return;
-      const { canvas, ctx, shape } = offScreenCanvasData;
+      const { canvas, shape } = offScreenCanvasData;
 
       const label = await predict(canvas);
       console.log("label", label);
@@ -197,21 +197,21 @@ export default function App() {
     [generateOffScreenCanvasForPrediction, generatePredictedShape]
   );
 
-  // Extract conversion logic into reusable function
-  const transformersConvertDrawShapeToGeo = useCallback(
-    async (shapeId: TLShapeId) => {
-      const offScreenCanvasData = generateOffScreenCanvasForPrediction(shapeId);
-      if (!offScreenCanvasData) return;
-      const { canvas, ctx, shape } = offScreenCanvasData;
+  // // Extract conversion logic into reusable function
+  // const transformersConvertDrawShapeToGeo = useCallback(
+  //   async (shapeId: TLShapeId) => {
+  //     const offScreenCanvasData = generateOffScreenCanvasForPrediction(shapeId);
+  //     if (!offScreenCanvasData) return;
+  //     const { canvas, ctx, shape } = offScreenCanvasData;
 
-      worker.current?.postMessage({
-        action: "classify",
-        image: canvas.toDataURL(),
-        shape,
-      });
-    },
-    [generateOffScreenCanvasForPrediction, generatePredictedShape]
-  );
+  //     worker.current?.postMessage({
+  //       action: "classify",
+  //       image: canvas.toDataURL(),
+  //       shape,
+  //     });
+  //   },
+  //   [generateOffScreenCanvasForPrediction, generatePredictedShape]
+  // );
 
   useEffect(() => {
     if (!editor) return;
