@@ -8,6 +8,8 @@ import {
   type TLEventMapHandler,
   type TLShapeId,
   type TLUnknownShape,
+  type TLImageShape,
+  AssetRecordType,
 } from "tldraw";
 import "tldraw/tldraw.css";
 import { predict } from "./model";
@@ -115,6 +117,7 @@ export default function App() {
         square: "rectangle", // tldraw uses 'rectangle' for squares
         line: "arrow-up", // direct match
         other: "rectangle", // fallback to rectangle
+        sailboat: "image_sailboat", // fallback to rectangle
       };
 
       if (label !== "unknown" && label in shapeTypeMap) {
@@ -131,17 +134,47 @@ export default function App() {
             editor.deleteShapes([shape]);
 
             // Create a new shape with the predicted type
-            editor.createShape({
-              type: "geo",
-              x: bounds.x,
-              y: bounds.y,
-              props: {
-                geo: newShapeType,
-                w: bounds.w || 1,
-                h: bounds.h || 1,
-                color: (shape.props as TLDrawShapeProps).color,
-              },
-            });
+            if (newShapeType.startsWith("image_")) {
+              const assetId = AssetRecordType.createId();
+              editor.createAssets([
+                {
+                  id: assetId,
+                  type: "image",
+                  typeName: "asset",
+                  props: {
+                    name: `${newShapeType}.png`,
+                    src: `/${newShapeType}.png`, // You could also use a base64 encoded string here
+                    w: bounds.w,
+                    h: bounds.h,
+                    mimeType: "image/png",
+                    isAnimated: false,
+                  },
+                  meta: {},
+                },
+              ]);
+              editor.createShape<TLImageShape>({
+                type: "image",
+                x: bounds.x,
+                y: bounds.y,
+                props: {
+                  assetId,
+                  w: bounds.w || 1,
+                  h: bounds.h || 1,
+                },
+              });
+            } else {
+              editor.createShape({
+                type: "geo",
+                x: bounds.x,
+                y: bounds.y,
+                props: {
+                  geo: newShapeType,
+                  w: bounds.w || 1,
+                  h: bounds.h || 1,
+                  color: (shape.props as TLDrawShapeProps).color,
+                },
+              });
+            }
           });
         }
       }
