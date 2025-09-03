@@ -117,7 +117,18 @@ export default function App() {
         square: "rectangle", // tldraw uses 'rectangle' for squares
         line: "arrow-up", // direct match
         other: "rectangle", // fallback to rectangle
+        cloud: "cloud",
         sailboat: "image_sailboat", // fallback to rectangle
+        triangle: "triangle",
+        axis: "image_axis",
+        bat: "image_bat",
+        car: "image_car",
+        cat: "image_cat",
+        glasses: "image_glasses",
+        moon: "image_moon",
+        dog: "image_dog",
+        tree: "image_tree",
+        house: "image_house"
       };
 
       if (label !== "unknown" && label in shapeTypeMap) {
