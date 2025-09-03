@@ -6,21 +6,19 @@ export const CLASSES = [
   "square",
   "triangle",
   "star",
-  "vertical_line",
-  "vertical_arrows",
   "axis",
   "bat",
   "car",
   "cat",
   "eyeglasses",
-  "face",
-  "hat",
-  "microphone",
   "moon",
   "sailboat",
+  "dog",
+  "tree",
+  "cloud",
+  "house",
   "other",
 ] as const;
-
 
 let model: tf.LayersModel;
 // Load model
