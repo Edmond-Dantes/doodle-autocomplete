@@ -16,10 +16,12 @@ import {
   STROKE_SIZES, FONT_SIZES,
 } from 'tldraw'
 
+
 export type StampShape = TLBaseShape<'stamp', {
   w: number
   h: number
   text: string
+  isDraft: boolean
   color: TLDefaultColorStyle
   fill: TLDefaultFillStyle
   dash: TLDefaultDashStyle
@@ -36,6 +38,7 @@ export class StampShapeUtil extends BaseBoxShapeUtil<StampShape> {
     w: T.number,
     h: T.number,
     text: T.string,
+    isDraft: T.boolean,
     color: DefaultColorStyle,
     fill: DefaultFillStyle,
     dash: DefaultDashStyle,
@@ -49,6 +52,7 @@ export class StampShapeUtil extends BaseBoxShapeUtil<StampShape> {
       w: 160,
       h: 44,
       text: 'Doodly Doo',
+      isDraft: false,
       color: 'yellow',
       fill: 'solid',
       dash: 'solid',
@@ -59,7 +63,7 @@ export class StampShapeUtil extends BaseBoxShapeUtil<StampShape> {
   }
 
   component(shape: StampShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign } = shape.props
+    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
     const theme = useDefaultColorTheme()
 
     // map style → CSS
@@ -111,6 +115,9 @@ export class StampShapeUtil extends BaseBoxShapeUtil<StampShape> {
           alignItems: 'center',
           justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
           userSelect: 'none',
+          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
+          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
+
         }}
       >
         {text}
