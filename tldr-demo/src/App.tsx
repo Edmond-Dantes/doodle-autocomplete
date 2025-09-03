@@ -154,13 +154,14 @@ export default function App() {
                   typeName: "asset",
                   props: {
                     name: `${newShapeType}.png`,
-                    src: `/${newShapeType}.png`, // You could also use a base64 encoded string here
+                    src: `./${newShapeType}.png`, // You could also use a base64 encoded string here
                     w: bounds.w,
                     h: bounds.h,
                     mimeType: "image/png",
                     isAnimated: false,
                   },
                   meta: {},
+                  
                 },
               ]);
               editor.createShape<TLImageShape>({
