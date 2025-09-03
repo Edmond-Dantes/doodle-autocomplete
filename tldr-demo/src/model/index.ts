@@ -1,5 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
-import MODEL_URL from "../assets/model.json?url";
+// import MODEL_URL from "../assets/model.json?url";
+const MODEL_URL = "./model.json"
 
 export const CLASSES = [
   "circle",
