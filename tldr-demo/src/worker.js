@@ -4,15 +4,15 @@ import { env, pipeline, RawImage } from "@huggingface/transformers";
 // env.allowRemoteModels = false;
 // env.allowLocalModels = true;
 // env.localModelPath = "/models/";
-env.remoteHost = "https://storage.googleapis.com/doodle-autocomplete-model/models/";
-env.remotePathTemplate = '{model}/';
+env.remoteHost =
+  "https://storage.googleapis.com/doodle-autocomplete-model/models/";
+env.remotePathTemplate = "{model}/";
 
 // Load your model
-const classifier = await pipeline(
-  "image-classification",
-  "vit-quickdraw-final",
-  { device: "webgpu" }
-);
+let classifier;
+pipeline("image-classification", "vit-quickdraw-final", {
+  device: "webgpu",
+}).then((c) => (classifier = c));
 
 async function predict(image) {
   const result = await classifier(image).catch((error) => {

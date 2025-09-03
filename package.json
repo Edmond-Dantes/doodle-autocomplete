@@ -7,6 +7,7 @@
   "scripts": {
     "demo": "npm run -w=p5demo start",
     "tldr": "npm run -w=tldr-demo dev",
+    "build": "npm run -w=tldr-demo build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
