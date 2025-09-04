@@ -13,6 +13,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.tl-image {
+  object-fit: contain !important;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
