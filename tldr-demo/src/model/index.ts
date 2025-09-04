@@ -45,7 +45,6 @@ export async function predict(
     out = model.predict(input) as tf.Tensor<tf.Rank.R2>;
 
     const arr = (await out.array()) as number[][];
-    console.log({ arr });
     const probs = arr[0];
     const idx = probs.indexOf(Math.max(...probs));
     const conf = probs[idx];
