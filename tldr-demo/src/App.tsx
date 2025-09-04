@@ -10,14 +10,20 @@ import {
   type TLUnknownShape,
   type TLImageShape,
   AssetRecordType,
+  DefaultColorStyle, //LOUISE
 } from "tldraw";
 import "tldraw/tldraw.css";
 import { predict } from "./model";
+import { shapeUtils, tools, uiOverrides, components, assetUrls } from './registry' //LOUISE
+
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
   const [editor, setEditor] = useState<Editor>();
+
+
+
+
 
   // // Create a reference to the worker object.
   // const worker = useRef<Worker | null>(null);
@@ -228,6 +234,13 @@ export default function App() {
     if (!editor) return;
 
     editor.setCurrentTool("draw");
+    //LOUISE
+    editor.focus()
+    if (typeof (editor as any).setStyleForNextShapes === 'function') {
+      editor.setStyleForNextShapes(DefaultColorStyle, 'light-blue')
+    }
+
+    ///LOUISE
 
     let lastDrawnShapeId: TLShapeId | null = null;
     let isDrawing = false;
@@ -292,6 +305,8 @@ export default function App() {
     };
   }, [editor, convertDrawShapeToGeo]);
 
+
+  //LOUISE
   return (
     <div
       style={{
@@ -299,7 +314,17 @@ export default function App() {
         inset: 0,
       }}
     >
-      <Tldraw onMount={setAppToState} options={{ maxPages: 1 }} />
+
+      <Tldraw
+        onMount={setAppToState}
+        options={{ maxPages: 1 }}
+        shapeUtils={shapeUtils}
+        tools={tools}
+        overrides={uiOverrides}
+        components={components}
+        assetUrls={assetUrls}
+      />
+
       <div style={{ position: "absolute", left: 350, top: 0 }}>
         <canvas
           id="classify-canvas"
@@ -311,4 +336,5 @@ export default function App() {
       </div>
     </div>
   );
+  ///LOUISE
 }
