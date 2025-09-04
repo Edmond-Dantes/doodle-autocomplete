@@ -24,7 +24,96 @@ export const uiOverrides: TLUiOverrides = {
       kbd: 's',
       readonlyOk: true,
       onSelect: () => editor.setCurrentTool('stamp'), // ← important
-    }
+    };
+    tools.axis = {
+      id: 'axis',
+      label: 'Axis',
+      icon: 'axis-icon',
+      kbd: '1',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('axis'), // ← important
+    };
+    tools.bat = {
+      id: 'bat',
+      label: 'Bat',
+      icon: 'bat-icon',
+      kbd: '2',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('bat'), // ← important
+    };
+    tools.car = {
+      id: 'car',
+      label: 'Car',
+      icon: 'car-icon',
+      kbd: '3',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('car'), // ← important
+    };
+    tools.cat = {
+      id: 'cat',
+      label: 'Cat',
+      icon: 'cat-icon',
+      kbd: '3',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('cat'), // ← important
+    };
+    tools.dog = {
+      id: 'dog',
+      label: 'Dog',
+      icon: 'dog-icon',
+      kbd: '4',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('dog'), // ← important
+    };
+    tools.glasses = {
+      id: 'glasses',
+      label: 'Glasses',
+      icon: 'glasses-icon',
+      kbd: '5',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('glasses'), // ← important
+    };
+    tools.house = {
+      id: 'house',
+      label: 'House',
+      icon: 'house-icon',
+      kbd: '6',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('house'), // ← important
+    };
+    tools.moon = {
+      id: 'moon',
+      label: 'Moon',
+      icon: 'moon-icon',
+      kbd: '7',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('moon'), // ← important
+    };
+    tools.boat = {
+      id: 'boat',
+      label: 'Boat',
+      icon: 'boat-icon',
+      kbd: '8',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('boat'), // ← important
+    };
+    tools.stick = {
+      id: 'stick',
+      label: 'Stick',
+      icon: 'stick-icon',
+      kbd: '9',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('stick'), // ← important
+    };
+    tools.tree = {
+      id: 'tree',
+      label: 'Tree',
+      icon: 'tree-icon',
+      kbd: '0',
+      readonlyOk: true,
+      onSelect: () => editor.setCurrentTool('tree'), // ← important
+    };
+
     return tools
   },
 }
@@ -430,6 +519,17 @@ export const components: TLComponents = {
         <StyleButton />            {/* ← single style button with live swatch */}
         <DefaultToolbarContent />
         <TldrawUiMenuItem {...tools['stamp']} />
+        <TldrawUiMenuItem {...tools['axis']} />
+        <TldrawUiMenuItem {...tools['bat']} />
+        <TldrawUiMenuItem {...tools['car']} />
+        <TldrawUiMenuItem {...tools['cat']} />
+        <TldrawUiMenuItem {...tools['dog']} />
+        <TldrawUiMenuItem {...tools['glasses']} />
+        <TldrawUiMenuItem {...tools['house']} />
+        <TldrawUiMenuItem {...tools['moon']} />
+        <TldrawUiMenuItem {...tools['boat']} />
+        <TldrawUiMenuItem {...tools['stick']} />
+        <TldrawUiMenuItem {...tools['tree']} />
       </DefaultToolbar>
     )
   },

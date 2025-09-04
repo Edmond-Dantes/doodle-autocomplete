@@ -10,6 +10,18 @@ export const assetUrls: TLUiAssetUrlOverrides = {
 
     // tools
     'stamp-icon': '/icons/stamp.svg',
+    'axis-icon': '/icons/axis.svg',
+    'bat-icon': '/icons/bat.svg',
+    'boat-icon': '/icons/boat.svg',
+    'car-icon': '/icons/car.svg',
+    'cat-icon': '/icons/cat.svg',
+    'dog-icon': '/icons/dog.svg',
+    'glasses-icon': '/icons/glasses.svg',
+    'house-icon': '/icons/house.svg',
+    'moon-icon': '/icons/moon.svg',
+    'sailboat-icon': '/icons/sailboat.svg',
+    'stick-icon': '/icons/stick.svg',
+    'tree-icon': '/icons/tree.svg',
     // add future icons here: 'foo-icon': '/icons/foo.svg',
 
     // used by your colour button to hide the glyph
