@@ -12,7 +12,7 @@ import {
   AssetRecordType,
 } from "tldraw";
 import "tldraw/tldraw.css";
-import { predict } from "./model";
+import { predict, CLASSES } from "./model";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -128,7 +128,7 @@ export default function App() {
         moon: "image_moon",
         dog: "image_dog",
         tree: "image_tree",
-        house: "image_house"
+        house: "image_house",
       };
 
       if (label !== "unknown" && label in shapeTypeMap) {
@@ -154,7 +154,7 @@ export default function App() {
                   typeName: "asset",
                   props: {
                     name: `${newShapeType}.png`,
-                    src: `/${newShapeType}.png`, // You could also use a base64 encoded string here
+                    src: `./${newShapeType}.png`, // You could also use a base64 encoded string here
                     w: bounds.w,
                     h: bounds.h,
                     mimeType: "image/png",
@@ -201,7 +201,7 @@ export default function App() {
       const { canvas, shape } = offScreenCanvasData;
 
       const label = await predict(canvas);
-      console.log("label", label);
+      // console.log("label", label);
 
       generatePredictedShape(label, shape);
     },
@@ -308,6 +308,19 @@ export default function App() {
           width={28}
           hidden
         />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 10,
+          top: 30,
+        }}
+      >
+        <ul style={{ listStyleType: "none", padding: 0 }}>
+          {CLASSES.map((label) => (
+            <li key={label}>{label}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
