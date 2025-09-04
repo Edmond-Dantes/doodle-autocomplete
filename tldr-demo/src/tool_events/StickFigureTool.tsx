@@ -64,7 +64,7 @@ export class StickTool extends StateNode {
 
     if (dx < 3 && dy < 3) {
       // Click → drop default size centred at click
-      const w = 160, h = 44
+      const w = 80, h = 160
       this.editor.updateShape({
         id,
         type: 'stick',

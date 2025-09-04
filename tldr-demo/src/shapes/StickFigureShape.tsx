@@ -49,81 +49,92 @@ export class StickShapeUtil extends BaseBoxShapeUtil<StickShape> {
 
   getDefaultProps(): StickShape['props'] {
     return {
-      w: 160,
-      h: 44,
-      text: 'Doodly Doo',
+      w: 80,
+      h: 160,
+      text: '',
       isDraft: false,
-      color: 'yellow',
-      fill: 'solid',
+      color: 'light-red',
+      fill: 'none',     // head fill (we’ll map this)
       dash: 'solid',
-      size: 'm',
+      size: 'm',        // drives stroke width
       font: 'sans',
       textAlign: 'middle',
     }
   }
 
-  component(shape: StickShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
-    const theme = useDefaultColorTheme()
+component(shape: StickShape) {
+  const { w, h, color, fill, dash, size, isDraft } = shape.props
+  const theme = useDefaultColorTheme()
 
-    // map style → CSS
-    const strokeWidth = STROKE_SIZES[size]
-    const strokeColour = theme[color].solid
-    const fillColour =
-      fill === 'none' ? 'transparent'
-      : fill === 'semi' ? theme[color].semi
-      : fill === 'pattern'
-      ? `repeating-linear-gradient(45deg, ${theme[color].semi} 0 6px, transparent 6px 12px)`
-      : theme[color].solid
+  const stroke = theme[color].solid
+  const sw = STROKE_SIZES[size]
+  const dashArray =
+    dash === 'dotted' ? `${sw} ${sw}` :
+    dash === 'dashed' ? `${sw * 2} ${sw * 2}` :
+    undefined
 
-    const borderStyle =
-      dash === 'dotted' ? 'dotted'
-      : dash === 'dashed' ? 'dashed'
-      // tldraw’s “draw” is a hand-drawn effect; here we fall back to solid
-      : 'solid'
+  // proportions
+  const cx = w / 2
+  const headR      = Math.min(w, h) * 0.14
+  const headCY     = headR + sw + h * 0.02
+  const neckY      = headCY + headR
+  const shouldersY = neckY + h * 0.06
+  const hipsY      = h * 0.68
+  const feetY      = h * 0.95
+  const leftArmX   = w * 0.18
+  const rightArmX  = w * 0.82
+  const leftLegX   = w * 0.36
+  const rightLegX  = w * 0.64
 
-    const fontFamily =
-      font === 'mono' ? 'ui-monospace, SFMono-Regular, Menlo, monospace'
-      : font === 'serif' ? 'Georgia, Cambria, Times, serif'
-      : font === 'draw' ? 'cursive'
-      : 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  const headFill =
+    fill === 'semi'  ? theme[color].semi :
+    fill === 'solid' ? theme[color].solid :
+    'none'
 
-    const textAlignCss =
-      textAlign === 'start' ? 'left'
-      : textAlign === 'end' ? 'right'
-      : 'center'
+  return (
+    <HTMLContainer style={{ width: w, height: h, opacity: isDraft ? 0.6 : 1 }}>
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block' }}>
+        {/* head */}
+        <circle
+          cx={cx} cy={headCY} r={headR}
+          fill={headFill}
+          stroke={stroke}
+          strokeWidth={sw}
+          strokeDasharray={dashArray}
+        />
+        {/* torso */}
+        <line
+          x1={cx} y1={neckY} x2={cx} y2={hipsY}
+          stroke={stroke} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={dashArray}
+        />
+        {/* arms */}
+        <line
+          x1={leftArmX} y1={shouldersY} x2={cx} y2={shouldersY}
+          stroke={stroke} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={dashArray}
+        />
+        <line
+          x1={cx} y1={shouldersY} x2={rightArmX} y2={shouldersY}
+          stroke={stroke} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={dashArray}
+        />
+        {/* legs */}
+        <line
+          x1={cx} y1={hipsY} x2={leftLegX} y2={feetY}
+          stroke={stroke} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={dashArray}
+        />
+        <line
+          x1={cx} y1={hipsY} x2={rightLegX} y2={feetY}
+          stroke={stroke} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={dashArray}
+        />
+      </svg>
+    </HTMLContainer>
+  )
+}
 
-    const r = Math.min(h / 2, 999)
-
-    return (
-      <HTMLContainer
-        style={{
-          width: w,
-          height: h,
-          borderRadius: r,
-          background: fillColour,
-          border: `${strokeWidth}px ${borderStyle} ${strokeColour}`,
-          display: 'grid',
-          placeItems: 'center',
-          paddingInline: 12,
-          boxSizing: 'border-box',
-          fontFamily,
-          fontSize: FONT_SIZES[size],
-          fontWeight: 700,
-          textAlign: textAlignCss as any,
-          // keep text centred vertically even when left/right aligned
-          alignItems: 'center',
-          justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
-          userSelect: 'none',
-          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
-          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
-
-        }}
-      >
-        {text}
-      </HTMLContainer>
-    )
-  }
 
   indicator(shape: StickShape) {
     const { w, h } = shape.props
