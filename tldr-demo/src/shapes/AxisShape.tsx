@@ -49,81 +49,67 @@ export class AxisShapeUtil extends BaseBoxShapeUtil<AxisShape> {
 
   getDefaultProps(): AxisShape['props'] {
     return {
-      w: 160,
-      h: 44,
-      text: 'Doodly Doo',
+      w: 80,
+      h: 160,
+      text: '',
       isDraft: false,
-      color: 'yellow',
-      fill: 'solid',
+      color: 'light-red',
+      fill: 'none',     // head fill (we’ll map this)
       dash: 'solid',
-      size: 'm',
+      size: 'm',        // drives stroke width
       font: 'sans',
       textAlign: 'middle',
     }
   }
 
-  component(shape: AxisShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
-    const theme = useDefaultColorTheme()
+component(shape: AxisShape) {
+  const { w, h, color, fill, dash, size, isDraft } = shape.props
+  const theme = useDefaultColorTheme()
 
-    // map style → CSS
-    const strokeWidth = STROKE_SIZES[size]
-    const strokeColour = theme[color].solid
-    const fillColour =
-      fill === 'none' ? 'transparent'
-      : fill === 'semi' ? theme[color].semi
-      : fill === 'pattern'
-      ? `repeating-linear-gradient(45deg, ${theme[color].semi} 0 6px, transparent 6px 12px)`
-      : theme[color].solid
+  const stroke = theme[color].solid
+  const sw = STROKE_SIZES[size]
+  const dashArray =
+    dash === 'dotted' ? `${sw} ${sw}` :
+    dash === 'dashed' ? `${sw * 2} ${sw * 2}` :
+    undefined
 
-    const borderStyle =
-      dash === 'dotted' ? 'dotted'
-      : dash === 'dashed' ? 'dashed'
-      // tldraw’s “draw” is a hand-drawn effect; here we fall back to solid
-      : 'solid'
+  // proportions
+  const cx = w / 2
+  const headR      = Math.min(w, h) * 0.14
+  const headCY     = headR + sw + h * 0.02
+  const neckY      = headCY + headR
+  const shouldersY = neckY + h * 0.06
+  const hipsY      = h * 0.68
+  const feetY      = h * 0.95
+  const leftArmX   = w * 0.18
+  const rightArmX  = w * 0.82
+  const leftLegX   = w * 0.36
+  const rightLegX  = w * 0.64
 
-    const fontFamily =
-      font === 'mono' ? 'ui-monospace, SFMono-Regular, Menlo, monospace'
-      : font === 'serif' ? 'Georgia, Cambria, Times, serif'
-      : font === 'draw' ? 'cursive'
-      : 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  const headFill =
+    fill === 'semi'  ? theme[color].semi :
+    fill === 'solid' ? theme[color].solid :
+    'none'
 
-    const textAlignCss =
-      textAlign === 'start' ? 'left'
-      : textAlign === 'end' ? 'right'
-      : 'center'
+  return (
+    <HTMLContainer style={{ width: w, height: h, opacity: isDraft ? 0.6 : 1 }}>
+      <svg width={w} height={h} viewBox="0 0 100 100" style={{ display: 'block' }}>
+        <polygon
+          points="
+            92,88.5 81.64,82.52 81.64,87 15,87 15,18.36 19.48,18.36 13.5,8 7.52,18.36 12,18.36
+            12,24.88 9.88,24.88 9.88,27.88 12,27.88 12,40.88 9.88,40.88 9.88,43.88 12,43.88
+            12,56.88 9.88,56.88 9.88,59.88 12,59.88 12,72.88 9.88,72.88 9.88,75.88 12,75.88
+            12,87 12,88 12,90 26,90 26,92 29,92 29,90 42,90 42,92 45,92 45,90 58,90 58,92
+            61,92 61,90 74,90 74,92 77,92 77,90 81.64,90 81.64,94.48
+          "
+          fill={stroke}
+          stroke="none"
+        />
+      </svg>
+    </HTMLContainer>
+  )
+}
 
-    const r = Math.min(h / 2, 999)
-
-    return (
-      <HTMLContainer
-        style={{
-          width: w,
-          height: h,
-          borderRadius: r,
-          background: fillColour,
-          border: `${strokeWidth}px ${borderStyle} ${strokeColour}`,
-          display: 'grid',
-          placeItems: 'center',
-          paddingInline: 12,
-          boxSizing: 'border-box',
-          fontFamily,
-          fontSize: FONT_SIZES[size],
-          fontWeight: 700,
-          textAlign: textAlignCss as any,
-          // keep text centred vertically even when left/right aligned
-          alignItems: 'center',
-          justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
-          userSelect: 'none',
-          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
-          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
-
-        }}
-      >
-        {text}
-      </HTMLContainer>
-    )
-  }
 
   indicator(shape: AxisShape) {
     const { w, h } = shape.props

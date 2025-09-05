@@ -49,81 +49,96 @@ export class BoatShapeUtil extends BaseBoxShapeUtil<BoatShape> {
 
   getDefaultProps(): BoatShape['props'] {
     return {
-      w: 160,
-      h: 44,
-      text: 'Doodly Doo',
+      w: 100,
+      h: 100,
+      text: '',
       isDraft: false,
-      color: 'yellow',
-      fill: 'solid',
+      color: 'light-red',
+      fill: 'none',     // head fill (we’ll map this)
       dash: 'solid',
-      size: 'm',
+      size: 'm',        // drives stroke width
       font: 'sans',
       textAlign: 'middle',
     }
   }
 
-  component(shape: BoatShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
-    const theme = useDefaultColorTheme()
+component(shape: BoatShape) {
+  const { w, h, color, fill, dash, size, isDraft } = shape.props
+  const theme = useDefaultColorTheme()
 
-    // map style → CSS
-    const strokeWidth = STROKE_SIZES[size]
-    const strokeColour = theme[color].solid
-    const fillColour =
-      fill === 'none' ? 'transparent'
-      : fill === 'semi' ? theme[color].semi
-      : fill === 'pattern'
-      ? `repeating-linear-gradient(45deg, ${theme[color].semi} 0 6px, transparent 6px 12px)`
-      : theme[color].solid
+  const stroke = theme[color].solid
+  const sw = STROKE_SIZES[size]
+  const dashArray =
+    dash === 'dotted' ? `${sw} ${sw}` :
+    dash === 'dashed' ? `${sw * 2} ${sw * 2}` :
+    undefined
 
-    const borderStyle =
-      dash === 'dotted' ? 'dotted'
-      : dash === 'dashed' ? 'dashed'
-      // tldraw’s “draw” is a hand-drawn effect; here we fall back to solid
-      : 'solid'
+  // proportions
+  const cx = w / 2
+  const headR      = Math.min(w, h) * 0.14
+  const headCY     = headR + sw + h * 0.02
+  const neckY      = headCY + headR
+  const shouldersY = neckY + h * 0.06
+  const hipsY      = h * 0.68
+  const feetY      = h * 0.95
+  const leftArmX   = w * 0.18
+  const rightArmX  = w * 0.82
+  const leftLegX   = w * 0.36
+  const rightLegX  = w * 0.64
 
-    const fontFamily =
-      font === 'mono' ? 'ui-monospace, SFMono-Regular, Menlo, monospace'
-      : font === 'serif' ? 'Georgia, Cambria, Times, serif'
-      : font === 'draw' ? 'cursive'
-      : 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  const headFill =
+    fill === 'semi'  ? theme[color].semi :
+    fill === 'solid' ? theme[color].solid :
+    'none'
 
-    const textAlignCss =
-      textAlign === 'start' ? 'left'
-      : textAlign === 'end' ? 'right'
-      : 'center'
+  return (
+    <HTMLContainer style={{ width: w, height: h, opacity: isDraft ? 0.6 : 1 }}>
+      <svg width={w} height={h} viewBox="0 0 100 100" style={{ display: 'block' }}>
+        <g fill={stroke} stroke="none">
+          <path d="M83.48,67.73c1.33-0.48,2.7-0.89,3.99-1.47c0.88-0.39,1.61-0.46,2.44,0.04c1.93,1.16,4.04,1.68,6.31,1.6
+            c1.24-0.05,2,0.59,2,1.58c0.01,0.99-0.71,1.57-1.99,1.62c-2.42,0.09-4.69-0.43-6.89-1.43c-0.39-0.18-0.97-0.21-1.36-0.05
+            c-4.33,1.73-8.63,1.73-12.96-0.02c-0.37-0.15-0.91-0.16-1.28-0.01c-4.36,1.78-8.69,1.78-13.05-0.01c-0.37-0.15-0.91-0.13-1.29,0.02
+            c-4.32,1.76-8.63,1.75-12.96,0.01c-0.4-0.16-0.97-0.15-1.37,0.01c-4.3,1.72-8.57,1.72-12.87,0.02c-0.43-0.17-1.03-0.17-1.46,0
+            c-4.3,1.71-8.57,1.71-12.87-0.02c-0.42-0.17-1.03-0.14-1.46,0.03c-4.37,1.73-8.72,1.73-13.03-0.16c-1.26-0.56-1.63-1.76-0.82-2.63
+            c0.61-0.66,1.32-0.65,2.1-0.29c1.76,0.8,3.6,1.2,5.54,1.14c0.2-0.01,0.39-0.04,0.7-0.07c-0.46-1.14-0.97-2.19-1.29-3.29
+            c-0.18-0.62-0.21-1.4,0.01-2c0.72-1.97,1.61-3.88,2.39-5.83c0.37-0.92,0.98-1.36,1.95-1.42c5.43-0.34,10.85-0.7,16.28-1.05
+            c0.79-0.05,1.59-0.12,2.49-0.19c-0.21-3.21-0.41-6.35-0.62-9.55c-0.6,0.04-1.09,0.09-1.58,0.09c-0.98-0.01-1.71-0.69-1.72-1.58
+            c-0.01-0.86,0.61-1.53,1.58-1.6c3.89-0.28,7.79-0.53,11.68-0.79c0.69-0.05,1.39-0.11,2.24-0.18c-0.4-1.52-0.77-2.95-1.15-4.38
+            c-0.14-0.55-0.32-1.09-0.43-1.64c-0.19-0.92,0.3-1.69,1.16-1.92c0.83-0.22,1.64,0.24,1.91,1.18c0.56,1.92,1.06,3.86,1.59,5.79
+            c0.06,0.22,0.13,0.44,0.24,0.78c1.64-0.11,3.29-0.21,5.04-0.33c-0.07-1.08-0.13-2.07-0.19-3.09c-1.32-0.18-3.16,0.55-3.24-1.57
+            c-0.07-1.96,1.7-1.52,2.95-1.78c0-0.55-0.01-1.07,0-1.59c0.02-0.91,0.58-1.57,1.41-1.66c0.81-0.09,1.54,0.46,1.72,1.34
+            c0.1,0.52,0.11,1.05,0.17,1.63c1.27,0.16,3.12-0.52,3.21,1.54c0.09,1.91-1.66,1.59-2.99,1.78c0.06,1.01,0.11,1.99,0.17,3.15
+            c0.89-0.04,1.74-0.03,2.58-0.15c0.91-0.12,1.6,0.14,2.24,0.79c3.5,3.54,7.03,7.04,10.52,10.58c0.49,0.5,1.03,0.73,1.58,0.49
+            c0.31-0.14,0.51-0.68,0.64-1.07c0.26-0.82,0.44-1.68,0.66-2.51c0.22-0.82,0.73-1.32,1.62-1.38c6.19-0.4,12.39-0.82,18.58-1.21
+            c1.81-0.11,2.45,0.7,1.99,2.45c-0.86,3.32-1.64,6.66-3.18,9.77c-1.97,3.98-4.97,6.97-8.6,9.42c-0.38,0.26-0.78,0.49-1.17,0.74
+            C83.4,67.51,83.44,67.62,83.48,67.73z M86.97,60.36c-0.04-0.08-0.09-0.17-0.13-0.25c-1.58,0.08-3.16,0.15-4.74,0.25
+            c-4.82,0.32-9.64,0.65-14.45,0.97c-3.32,0.22-6.65,0.41-9.97,0.63c-4.62,0.31-9.23,0.65-13.85,0.96
+            c-3.46,0.23-6.92,0.41-10.37,0.64c-5.95,0.39-11.9,0.79-17.85,1.19c-0.68,0.05-1.35,0.15-2.05,0.24c0.57,2.06,0.59,2.09,2.38,1.18
+            c0.89-0.45,1.67-0.42,2.56,0.02c3.9,1.93,7.83,1.91,11.72,0c0.89-0.44,1.65-0.45,2.55-0.01c3.9,1.92,7.83,1.93,11.73,0.01
+            c0.89-0.44,1.66-0.46,2.55-0.02c3.93,1.94,7.89,1.94,11.82-0.02c0.86-0.43,1.61-0.42,2.46,0.01c3.93,1.96,7.89,1.93,11.82,0.01
+            c0.86-0.42,1.63-0.52,2.45,0.01c0.6,0.39,1.21,0.38,1.89,0.16c2.6-0.84,4.99-2.06,7.1-3.79C85.41,61.86,86.17,61.09,86.97,60.36z
+             M91.26,53.31c-0.38,0-0.68-0.02-0.97,0c-5.92,0.39-11.85,0.78-17.77,1.17c-6.32,0.42-12.65,0.83-18.97,1.25
+            c-7.52,0.5-15.04,1.02-22.56,1.52c-5.19,0.35-10.38,0.68-15.57,1.03c-0.24,0.02-0.6,0.1-0.67,0.27c-0.44,0.92-0.82,1.87-1.26,2.92
+            c0.51,0,0.83,0.02,1.16,0c3.96-0.26,7.92-0.52,11.88-0.78c9.68-0.63,19.37-1.24,29.05-1.88c10.55-0.7,21.1-1.42,31.64-2.12
+            c2.93-0.2,2.93-0.18,3.94-3C91.19,53.58,91.21,53.49,91.26,53.31z M39.14,53.42c-0.11-1.6-0.23-3.09-0.3-4.58
+            c-0.05-1.14,0.47-1.73,1.6-1.89c0.33-0.05,0.66-0.07,1-0.09c5.62-0.36,11.25-0.71,16.87-1.08c1.01-0.07,2.02-0.16,3.03-0.25
+            c0.05-0.1,0.11-0.19,0.16-0.29c-0.72-0.64-1.47-1.25-2.13-1.94c-0.5-0.53-1-0.74-1.74-0.69c-5.55,0.39-11.11,0.73-16.67,1.1
+            c-1.82,0.12-3.64,0.26-5.59,0.4c0.21,3.21,0.41,6.35,0.62,9.56C37.09,53.58,38.04,53.51,39.14,53.42z M67.31,51.58
+            c0.07-0.1,0.13-0.19,0.2-0.29c-0.8-0.73-1.56-1.5-2.4-2.18c-0.32-0.26-0.81-0.47-1.21-0.45c-1.93,0.07-3.85,0.23-5.77,0.36
+            c-1.02,0.07-2.03,0.14-3.12,0.21c0.07,1.11,0.13,2.08,0.19,3.13C59.31,52.11,63.31,51.84,67.31,51.58z M48.78,52.8
+            c1.12-0.09,2.09-0.16,3.13-0.24c-0.06-1.09-0.12-2.07-0.18-3.14c-1.11,0.09-2.09,0.17-3.13,0.26
+            C48.66,50.78,48.72,51.75,48.78,52.8z M45.52,52.99c-0.06-1.11-0.12-2.09-0.18-3.15c-1.12,0.09-2.1,0.17-3.15,0.26
+            c0.07,1.1,0.14,2.08,0.21,3.13C43.49,53.15,44.44,53.07,45.52,52.99z M79.88,49.26c-0.62,0-1.17-0.02-1.73,0
+            c-1.34,0.06-1.43,0.17-1.41,1.69c0.52-0.03,1.04-0.06,1.56-0.09C79.7,50.79,79.7,50.79,79.88,49.26z M92.69,48.35
+            c-0.61,0.03-1.13,0.06-1.66,0.08c-1.44,0.06-1.44,0.06-1.51,1.6c0.53,0,1.05,0.02,1.58,0C92.47,49.98,92.47,49.98,92.69,48.35z
+             M83.09,50.53c0.61-0.03,1.14-0.06,1.67-0.08c1.37-0.06,1.44-0.13,1.46-1.6c-0.53,0-1.05-0.02-1.58,0
+            C83.22,48.9,83.22,48.91,83.09,50.53z"/>
+        </g>
+      </svg>
+    </HTMLContainer>
+  )
+}
 
-    const r = Math.min(h / 2, 999)
-
-    return (
-      <HTMLContainer
-        style={{
-          width: w,
-          height: h,
-          borderRadius: r,
-          background: fillColour,
-          border: `${strokeWidth}px ${borderStyle} ${strokeColour}`,
-          display: 'grid',
-          placeItems: 'center',
-          paddingInline: 12,
-          boxSizing: 'border-box',
-          fontFamily,
-          fontSize: FONT_SIZES[size],
-          fontWeight: 700,
-          textAlign: textAlignCss as any,
-          // keep text centred vertically even when left/right aligned
-          alignItems: 'center',
-          justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
-          userSelect: 'none',
-          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
-          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
-
-        }}
-      >
-        {text}
-      </HTMLContainer>
-    )
-  }
 
   indicator(shape: BoatShape) {
     const { w, h } = shape.props

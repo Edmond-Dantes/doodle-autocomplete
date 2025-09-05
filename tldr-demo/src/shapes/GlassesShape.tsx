@@ -49,81 +49,70 @@ export class GlassesShapeUtil extends BaseBoxShapeUtil<GlassesShape> {
 
   getDefaultProps(): GlassesShape['props'] {
     return {
-      w: 160,
-      h: 44,
-      text: 'Doodly Doo',
+      w: 100,
+      h: 52,
+      text: '',
       isDraft: false,
-      color: 'yellow',
-      fill: 'solid',
+      color: 'light-red',
+      fill: 'none',     // head fill (we’ll map this)
       dash: 'solid',
-      size: 'm',
+      size: 'm',        // drives stroke width
       font: 'sans',
       textAlign: 'middle',
     }
   }
 
-  component(shape: GlassesShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
-    const theme = useDefaultColorTheme()
+component(shape: GlassesShape) {
+  const { w, h, color, fill, dash, size, isDraft } = shape.props
+  const theme = useDefaultColorTheme()
 
-    // map style → CSS
-    const strokeWidth = STROKE_SIZES[size]
-    const strokeColour = theme[color].solid
-    const fillColour =
-      fill === 'none' ? 'transparent'
-      : fill === 'semi' ? theme[color].semi
-      : fill === 'pattern'
-      ? `repeating-linear-gradient(45deg, ${theme[color].semi} 0 6px, transparent 6px 12px)`
-      : theme[color].solid
+  const stroke = theme[color].solid
+  const sw = STROKE_SIZES[size]
+  const dashArray =
+    dash === 'dotted' ? `${sw} ${sw}` :
+    dash === 'dashed' ? `${sw * 2} ${sw * 2}` :
+    undefined
 
-    const borderStyle =
-      dash === 'dotted' ? 'dotted'
-      : dash === 'dashed' ? 'dashed'
-      // tldraw’s “draw” is a hand-drawn effect; here we fall back to solid
-      : 'solid'
+  // proportions
+  const cx = w / 2
+  const headR      = Math.min(w, h) * 0.14
+  const headCY     = headR + sw + h * 0.02
+  const neckY      = headCY + headR
+  const shouldersY = neckY + h * 0.06
+  const hipsY      = h * 0.68
+  const feetY      = h * 0.95
+  const leftArmX   = w * 0.18
+  const rightArmX  = w * 0.82
+  const leftLegX   = w * 0.36
+  const rightLegX  = w * 0.64
 
-    const fontFamily =
-      font === 'mono' ? 'ui-monospace, SFMono-Regular, Menlo, monospace'
-      : font === 'serif' ? 'Georgia, Cambria, Times, serif'
-      : font === 'draw' ? 'cursive'
-      : 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  const headFill =
+    fill === 'semi'  ? theme[color].semi :
+    fill === 'solid' ? theme[color].solid :
+    'none'
 
-    const textAlignCss =
-      textAlign === 'start' ? 'left'
-      : textAlign === 'end' ? 'right'
-      : 'center'
+  return (
+    <HTMLContainer style={{ width: w, height: h, opacity: isDraft ? 0.6 : 1 }}>
+<svg width={w} height={h} viewBox="0 0 100 52" style={{ display: 'block' }}>
+  <g fill={stroke} stroke="none">
+    <path d="M30.75,16.21c-4.92,0-8.93,4-8.93,8.93c0,0.92,0.62,1.54,1.54,1.54c0.92,0,1.54-0.62,1.54-1.54c0-3.08,2.77-5.85,5.85-5.85
+      c0.92,0,1.54-0.62,1.54-1.54S31.67,16.21,30.75,16.21z"/>
+    <path d="M71.07,16.21c-4.92,0-8.93,4-8.93,8.93c0,0.92,0.62,1.54,1.54,1.54c0.92,0,1.54-0.62,1.54-1.54c0-3.08,2.46-5.85,5.85-5.85
+      c0.92,0,1.54-0.62,1.54-1.54S71.69,16.21,71.07,16.21z"/>
+    <path d="M92.61,22.06h-2.77c-1.54-8.62-9.23-15.39-18.16-15.39s-16.62,6.77-18.16,15.39h-4.31c-1.54-8.62-9.23-15.39-18.16-15.39
+      S14.44,13.44,12.9,22.06h-4c-1.54,0-3.08,1.23-3.08,3.08c0,1.85,1.23,3.08,3.08,3.08h3.69c1.23,8.62,8.93,15.39,18.16,15.39
+      s16.93-7.08,18.47-16h4c1.23,8.93,8.93,16,18.47,16s16.93-7.08,18.47-16h2.77c1.54,0,3.08-1.23,3.08-3.08
+      C96,22.68,94.15,22.06,92.61,22.06z M30.75,37.76c-7.08,0-12.62-5.85-12.62-12.62c0-7.08,5.85-12.62,12.62-12.62
+      c7.08,0,12.62,5.85,12.62,12.62C43.68,32.22,37.83,37.76,30.75,37.76z M71.69,37.76c-7.08,0-12.62-5.85-12.62-12.62
+      c0-7.08,5.85-12.62,12.62-12.62S84.3,18.37,84.3,25.14C84.3,32.22,78.46,37.76,71.69,37.76z"/>
+  </g>
+</svg>
 
-    const r = Math.min(h / 2, 999)
 
-    return (
-      <HTMLContainer
-        style={{
-          width: w,
-          height: h,
-          borderRadius: r,
-          background: fillColour,
-          border: `${strokeWidth}px ${borderStyle} ${strokeColour}`,
-          display: 'grid',
-          placeItems: 'center',
-          paddingInline: 12,
-          boxSizing: 'border-box',
-          fontFamily,
-          fontSize: FONT_SIZES[size],
-          fontWeight: 700,
-          textAlign: textAlignCss as any,
-          // keep text centred vertically even when left/right aligned
-          alignItems: 'center',
-          justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
-          userSelect: 'none',
-          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
-          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
+    </HTMLContainer>
+  )
+}
 
-        }}
-      >
-        {text}
-      </HTMLContainer>
-    )
-  }
 
   indicator(shape: GlassesShape) {
     const { w, h } = shape.props

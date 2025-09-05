@@ -49,81 +49,66 @@ export class MoonShapeUtil extends BaseBoxShapeUtil<MoonShape> {
 
   getDefaultProps(): MoonShape['props'] {
     return {
-      w: 160,
-      h: 44,
-      text: 'Doodly Doo',
+      w: 100,
+      h: 100,
+      text: '',
       isDraft: false,
-      color: 'yellow',
-      fill: 'solid',
+      color: 'light-red',
+      fill: 'none',     // head fill (we’ll map this)
       dash: 'solid',
-      size: 'm',
+      size: 'm',        // drives stroke width
       font: 'sans',
       textAlign: 'middle',
     }
   }
 
-  component(shape: MoonShape) {
-    const { w, h, text, color, fill, dash, size, font, textAlign, isDraft } = shape.props
-    const theme = useDefaultColorTheme()
+component(shape: MoonShape) {
+  const { w, h, color, fill, dash, size, isDraft } = shape.props
+  const theme = useDefaultColorTheme()
 
-    // map style → CSS
-    const strokeWidth = STROKE_SIZES[size]
-    const strokeColour = theme[color].solid
-    const fillColour =
-      fill === 'none' ? 'transparent'
-      : fill === 'semi' ? theme[color].semi
-      : fill === 'pattern'
-      ? `repeating-linear-gradient(45deg, ${theme[color].semi} 0 6px, transparent 6px 12px)`
-      : theme[color].solid
+  const stroke = theme[color].solid
+  const sw = STROKE_SIZES[size]
+  const dashArray =
+    dash === 'dotted' ? `${sw} ${sw}` :
+    dash === 'dashed' ? `${sw * 2} ${sw * 2}` :
+    undefined
 
-    const borderStyle =
-      dash === 'dotted' ? 'dotted'
-      : dash === 'dashed' ? 'dashed'
-      // tldraw’s “draw” is a hand-drawn effect; here we fall back to solid
-      : 'solid'
+  // proportions
+  const cx = w / 2
+  const headR      = Math.min(w, h) * 0.14
+  const headCY     = headR + sw + h * 0.02
+  const neckY      = headCY + headR
+  const shouldersY = neckY + h * 0.06
+  const hipsY      = h * 0.68
+  const feetY      = h * 0.95
+  const leftArmX   = w * 0.18
+  const rightArmX  = w * 0.82
+  const leftLegX   = w * 0.36
+  const rightLegX  = w * 0.64
 
-    const fontFamily =
-      font === 'mono' ? 'ui-monospace, SFMono-Regular, Menlo, monospace'
-      : font === 'serif' ? 'Georgia, Cambria, Times, serif'
-      : font === 'draw' ? 'cursive'
-      : 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  const headFill =
+    fill === 'semi'  ? theme[color].semi :
+    fill === 'solid' ? theme[color].solid :
+    'none'
 
-    const textAlignCss =
-      textAlign === 'start' ? 'left'
-      : textAlign === 'end' ? 'right'
-      : 'center'
+  return (
+    <HTMLContainer style={{ width: w, height: h, opacity: isDraft ? 0.6 : 1 }}>
+<svg width={w} height={h} viewBox="0 0 100 100" style={{ display: 'block' }}>
+  <g fill={stroke} stroke="none">
+    <path d="M51.8,89c-7.89,0-15.46-2.52-22.09-6.94c-8.52-6-14.2-14.83-16.09-24.93s0.32-20.51,6.31-29.03S34.76,13.9,44.86,12
+      c2.52-0.32,5.05-0.63,7.26-0.63c1.26,0,2.52,0.95,2.84,2.21s0,2.52-1.26,3.47C40.13,26.2,34.76,42.3,41.39,54.6l0,0
+      c6.94,13.25,24.93,17.36,40.71,9.78c1.26-0.63,2.52-0.32,3.47,0.63c0.95,0.95,1.26,2.21,0.63,3.47
+      c-5.68,10.73-15.78,18.3-27.45,20.2C56.54,89,54.01,89,51.8,89z M42.65,18.63c-7.26,2.21-13.25,6.63-17.67,12.94
+      c-5.05,7.26-6.94,15.78-5.36,24.61c3.16,17.67,20.2,29.66,38.18,26.51c6.94-1.26,13.25-4.73,17.99-9.78
+      c-16.09,3.79-32.5-2.21-39.45-15.78l0,0C29.71,45.14,32.87,29.67,42.65,18.63z"/>
+  </g>
+</svg>
 
-    const r = Math.min(h / 2, 999)
 
-    return (
-      <HTMLContainer
-        style={{
-          width: w,
-          height: h,
-          borderRadius: r,
-          background: fillColour,
-          border: `${strokeWidth}px ${borderStyle} ${strokeColour}`,
-          display: 'grid',
-          placeItems: 'center',
-          paddingInline: 12,
-          boxSizing: 'border-box',
-          fontFamily,
-          fontSize: FONT_SIZES[size],
-          fontWeight: 700,
-          textAlign: textAlignCss as any,
-          // keep text centred vertically even when left/right aligned
-          alignItems: 'center',
-          justifyItems: textAlignCss === 'left' ? 'start' : textAlignCss === 'right' ? 'end' : 'center',
-          userSelect: 'none',
-          opacity: isDraft ? 0.6 : 1,         // ← fade EVERYTHING while dragging
-          transition: 'opacity 120ms ease',   // ← nice snap-in when you release
+    </HTMLContainer>
+  )
+}
 
-        }}
-      >
-        {text}
-      </HTMLContainer>
-    )
-  }
 
   indicator(shape: MoonShape) {
     const { w, h } = shape.props
