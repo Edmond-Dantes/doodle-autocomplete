@@ -20,7 +20,7 @@ import { shapeUtils, tools, uiOverrides, components, assetUrls } from './registr
 //LOUISE FRIDAY
 const BUILTIN_GEOS = new Set([
   'rectangle','ellipse','triangle','diamond','pentagon','hexagon','octagon','star',
-  'rhombus','rhombus-2','oval','trapezoid',
+  'rhombus','rhombus-2','oval','trapezoid', 'cloud',
   'arrow-right','arrow-left','arrow-up','arrow-down',
   'x-box','check-box','heart',
 ])
@@ -355,7 +355,7 @@ export default function App() {
           hidden
         />
       </div>
-      <div
+      {/* <div
         style={{
           position: "absolute",
           left: 10,
@@ -367,7 +367,7 @@ export default function App() {
             <li key={label}>{label}</li>
           ))}
         </ul>
-      </div>
+      </div> */}
     </div>
   );
   ///LOUISE
