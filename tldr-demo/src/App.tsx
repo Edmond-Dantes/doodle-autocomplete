@@ -16,6 +16,16 @@ import "tldraw/tldraw.css";
 import { predict, CLASSES } from "./model";
 import { shapeUtils, tools, uiOverrides, components, assetUrls } from './registry' //LOUISE
 
+
+//LOUISE FRIDAY
+const BUILTIN_GEOS = new Set([
+  'rectangle','ellipse','triangle','diamond','pentagon','hexagon','octagon','star',
+  'rhombus','rhombus-2','oval','trapezoid',
+  'arrow-right','arrow-left','arrow-up','arrow-down',
+  'x-box','check-box','heart',
+])
+//LOUISE FRIDAY
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [editor, setEditor] = useState<Editor>();
@@ -118,22 +128,22 @@ export default function App() {
       if (!editor) return;
 
       const shapeTypeMap: Record<string, string> = {
-        circle: "ellipse", // tldraw uses 'ellipse' for circles
+        circle: "ellipse", // should be "ellipse" tldraw uses 'ellipse' for circles
         square: "rectangle", // tldraw uses 'rectangle' for squares
         line: "arrow-up", // direct match
         other: "rectangle", // fallback to rectangle
         cloud: "cloud",
-        sailboat: "image_sailboat", // fallback to rectangle
-        triangle: "triangle",
-        axis: "image_axis",
-        bat: "image_bat",
-        car: "image_car",
-        cat: "image_cat",
-        glasses: "image_glasses",
-        moon: "image_moon",
-        dog: "image_dog",
-        tree: "image_tree",
-        house: "image_house",
+        sailboat: "boat", // fallback to rectangle
+        triangle: "triangle", // should be "triangle" but just testing other shapes for now
+        axis: "axis",
+        bat: "bat",
+        car: "car",
+        cat: "cat",
+        glasses: "glasses",
+        moon: "moon",
+        dog: "dog",
+        tree: "tree",
+        house: "house",
       };
 
       if (label !== "unknown" && label in shapeTypeMap) {
@@ -150,46 +160,57 @@ export default function App() {
             editor.deleteShapes([shape]);
 
             // Create a new shape with the predicted type
-            if (newShapeType.startsWith("image_")) {
-              const assetId = AssetRecordType.createId();
-              editor.createAssets([
-                {
-                  id: assetId,
-                  type: "image",
-                  typeName: "asset",
-                  props: {
-                    name: `${newShapeType}.png`,
-                    src: `./${newShapeType}.png`, // You could also use a base64 encoded string here
-                    w: bounds.w,
-                    h: bounds.h,
-                    mimeType: "image/png",
-                    isAnimated: false,
-                  },
-                  meta: {},
+            if (newShapeType.startsWith('image_')) {
+              // --- image branch (unchanged) ---
+              const assetId = AssetRecordType.createId()
+              editor.createAssets([{
+                id: assetId,
+                type: 'image',
+                typeName: 'asset',
+                props: {
+                  name: `${newShapeType}.png`,
+                  src: `./${newShapeType}.png`,
+                  w: bounds.w,
+                  h: bounds.h,
+                  mimeType: 'image/png',
+                  isAnimated: false,
                 },
-              ]);
+                meta: {},
+              }])
               editor.createShape<TLImageShape>({
-                type: "image",
+                type: 'image',
                 x: bounds.x,
                 y: bounds.y,
-                props: {
-                  assetId,
-                  w: bounds.w || 1,
-                  h: bounds.h || 1,
-                },
-              });
-            } else {
+                props: { assetId, w: bounds.w || 1, h: bounds.h || 1 },
+              })
+            } else
+            if (BUILTIN_GEOS.has(newShapeType)) {
+              // --- built-in geo branch ---
               editor.createShape({
-                type: "geo",
+                type: 'geo',
                 x: bounds.x,
                 y: bounds.y,
                 props: {
-                  geo: newShapeType,
+                  geo: newShapeType,                     // e.g. 'ellipse', 'triangle', ...
                   w: bounds.w || 1,
                   h: bounds.h || 1,
                   color: (shape.props as TLDrawShapeProps).color,
                 },
-              });
+              })
+            } else {
+              // --- CUSTOM shape branch (✔ your 'stick') ---
+              editor.createShape({
+                type: newShapeType as any,               // e.g. 'stick'
+                x: bounds.x,
+                y: bounds.y,
+                props: {
+                  w: bounds.w || 160,
+                  h: bounds.h || 160,
+                  isDraft: false,
+                  // pass styles your custom shape supports:
+                  color: (shape.props as TLDrawShapeProps).color,
+                },
+              })
             }
           });
         }
@@ -236,7 +257,7 @@ export default function App() {
     //LOUISE
     editor.focus()
     if (typeof (editor as any).setStyleForNextShapes === 'function') {
-      editor.setStyleForNextShapes(DefaultColorStyle, 'light-blue')
+      editor.setStyleForNextShapes(DefaultColorStyle, 'white')
     }
 
     ///LOUISE
@@ -306,6 +327,7 @@ export default function App() {
 
 
   //LOUISE
+    //LOUISE
   return (
     <div
       style={{
