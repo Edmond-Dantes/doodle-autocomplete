@@ -254,6 +254,7 @@ export default function App() {
     if (!editor) return;
 
     editor.setCurrentTool("draw");
+    editor.user.updateUserPreferences({ colorScheme: 'dark' })
     //LOUISE
     editor.focus()
     if (typeof (editor as any).setStyleForNextShapes === 'function') {
