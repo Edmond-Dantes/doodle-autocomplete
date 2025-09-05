@@ -379,7 +379,7 @@ export const components: TLComponents = {
         display: none !important;
       }
       .tl-watermark_SEE-LICENSE{
-        display: none !important;
+        background-color: unset !important;
       }
 
       /* Menu/group headings inside popovers & dropdowns */
